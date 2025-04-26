@@ -505,10 +505,11 @@ pipeline {
                                 echo "Changes pushed successfully to Helm repository."
 
                             } catch (e) {
-                                echo "ERROR: Failed to update or push changes to Helm repository!"
-                                echo e.getMessage()
-                                currentBuild.result = 'FAILURE' // Fail the build if update fails
-                                error("Failed to update Helm repository configuration.")
+                                echo "ERROR: Failed to update or push trigger comment changes!"
+                                // Try printing the exception object converted to a string
+                                echo "Failure Details: ${e.toString()}"
+                                currentBuild.result = 'FAILURE'
+                                error("Failed to update Helm repository configuration trigger comment.")
                             }
                         } // End dir(helm-repo-checkout)
                     } // End withCredentials
