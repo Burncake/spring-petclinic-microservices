@@ -2,8 +2,6 @@ package org.springframework.samples.petclinic.customers.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import nl.jqno.equalsverifier.EqualsVerifier; // Requires adding equalsverifier dependency
-
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
