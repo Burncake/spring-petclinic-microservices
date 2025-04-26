@@ -384,7 +384,7 @@ pipeline {
                                     // Prepend the new comment if no comment exists or file is empty
                                     newContent = newCommentLine + "\n" + originalContent
                                 }
-                                echo "This is new comment line: ${newCommentLine}"
+        
                                 // Write the modified content back
                                 writeFile file: env.HELM_MAIN_VALUES_PATH, text: newContent
                                 echo "Successfully updated ${env.HELM_MAIN_VALUES_PATH} trigger comment in workspace."
@@ -460,7 +460,7 @@ pipeline {
                                 if (!valuesData) {
                                      error "Failed to read YAML from ${env.HELM_STAGING_VALUES_PATH}. Is the file path correct, file valid, and plugin installed?"
                                 }
-
+                                echo "Read file success!"
                                 // Update the image tag for all services
                                 // This assumes the structure matches: serviceName: { image: { tag: ... } }
                                 // *** Uses camelCase keys based on previous discussion - ADJUST if needed ***
