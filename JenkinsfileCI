@@ -371,6 +371,7 @@ pipeline {
                             echo "Attempting to update trigger comment in ${env.HELM_MAIN_VALUES_PATH}"
                             try {
                                 def originalContent = readFile file: env.HELM_MAIN_VALUES_PATH
+                                echo "${originalContent}"
                                 def lines = originalContent.split('\n')
                                 def newCommentLine = "# Deployed commit: ${commitIdTag}"
         
@@ -384,7 +385,7 @@ pipeline {
                                     // Prepend the new comment if no comment exists or file is empty
                                     newContent = newCommentLine + "\n" + originalContent
                                 }
-        
+                                echo "${newCommentLine}"
                                 // Write the modified content back
                                 writeFile file: env.HELM_MAIN_VALUES_PATH, text: newContent
                                 echo "Successfully updated ${env.HELM_MAIN_VALUES_PATH} trigger comment in workspace."
