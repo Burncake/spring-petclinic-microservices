@@ -373,7 +373,7 @@ pipeline {
                                 def originalContent = readFile file: env.HELM_MAIN_VALUES_PATH
                                 def lines = originalContent.split('\n')
                                 def newCommentLine = "# Deployed commit: ${commitIdTag}"
-        
+                                echo "${lines}"
                                 // Prepend or replace the first line with the new comment
                                 def newContent = ""
                                 if (lines.size() > 0 && lines[0].startsWith("#")) {
@@ -384,7 +384,7 @@ pipeline {
                                     // Prepend the new comment if no comment exists or file is empty
                                     newContent = newCommentLine + "\n" + originalContent
                                 }
-                                echo "${newContent}"
+        
                                 // Write the modified content back
                                 writeFile file: env.HELM_MAIN_VALUES_PATH, text: newContent
                                 echo "Successfully updated ${env.HELM_MAIN_VALUES_PATH} trigger comment in workspace."
