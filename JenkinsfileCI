@@ -404,10 +404,8 @@ pipeline {
                                 echo "Trigger comment changes pushed successfully."
         
                             } catch (e) {
-                                echo "ERROR: Failed to update or push trigger comment changes!"
-                                // Ensure this line correctly prints the error message
-                                echo "DEBUG: Printing stack trace for the failure:"
-                                e.printStackTrace()
+                                // Try printing the exception object converted to a string
+                                echo "Failure Details: ${e.toString()}"
                                 currentBuild.result = 'FAILURE'
                                 error("Failed to update Helm repository configuration trigger comment.")
                             }
@@ -460,7 +458,7 @@ pipeline {
                                 if (!valuesData) {
                                      error "Failed to read YAML from ${env.HELM_STAGING_VALUES_PATH}. Is the file path correct, file valid, and plugin installed?"
                                 }
-                                echo "Read file success!"
+
                                 // Update the image tag for all services
                                 // This assumes the structure matches: serviceName: { image: { tag: ... } }
                                 // *** Uses camelCase keys based on previous discussion - ADJUST if needed ***
@@ -505,11 +503,10 @@ pipeline {
                                 echo "Changes pushed successfully to Helm repository."
 
                             } catch (e) {
-                                echo "ERROR: Failed to update or push trigger comment changes!"
-                                // Try printing the exception object converted to a string
-                                echo "Failure Details: ${e.toString()}"
-                                currentBuild.result = 'FAILURE'
-                                error("Failed to update Helm repository configuration trigger comment.")
+                                echo "ERROR: Failed to update or push changes to Helm repository!"
+                                echo e.getMessage()
+                                currentBuild.result = 'FAILURE' // Fail the build if update fails
+                                error("Failed to update Helm repository configuration.")
                             }
                         } // End dir(helm-repo-checkout)
                     } // End withCredentials
