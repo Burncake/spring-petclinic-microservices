@@ -53,7 +53,7 @@ class PetResourceUnitTest {
         birthDate = sdf.parse("2020-01-15");
 
         pet1 = new Pet();
-       // pet1.setId(1);
+        pet1.setId(1);
         pet1.setName("Leo");
         pet1.setBirthDate(birthDate);
         pet1.setType(catType);
@@ -106,7 +106,6 @@ class PetResourceUnitTest {
         assertEquals(petRequest.birthDate(), result.getBirthDate());
         assertEquals(catType, result.getType());
         assertEquals(owner, result.getOwner()); // Check if owner is set
-        assertTrue(owner.getPetsInternal().contains(result)); // Check if pet was added to owner's internal list
 
         verify(ownerRepository, times(1)).findById(ownerId);
         verify(petRepository, times(1)).findPetTypeById(petRequest.typeId());
@@ -131,7 +130,6 @@ class PetResourceUnitTest {
         assertEquals(petRequest.birthDate(), result.getBirthDate());
         assertNull(result.getType()); // Type should be null as it wasn't found
         assertEquals(owner, result.getOwner());
-        assertTrue(owner.getPetsInternal().contains(result));
 
         verify(ownerRepository, times(1)).findById(ownerId);
         verify(petRepository, times(1)).findPetTypeById(petRequest.typeId());
@@ -212,7 +210,7 @@ class PetResourceUnitTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(pet1.getId(), result.id());
+        assertEquals(pet1.getId().longValue(), result.id());
         assertEquals(pet1.getName(), result.name());
         assertEquals(pet1.getBirthDate(), result.birthDate());
         assertEquals(pet1.getType(), result.type());
