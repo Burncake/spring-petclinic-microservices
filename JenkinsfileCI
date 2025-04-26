@@ -328,7 +328,94 @@ pipeline {
         } // End Stage 3
 
         // ============================================================
-        // Stage 4: Update Staging Config in Helm Repo (NEW STAGE)
+        // Stage 4: Update Dev Trigger Comment in Helm Repo (SIMPLIFIED)
+        // ============================================================
+        stage('Update Dev Trigger Comment in Helm Repo') {
+            // Run only for successful non-tagged builds on 'main' branch
+            when {
+                expression {
+                    return env.BRANCH_NAME == 'main' && \
+                           env.IS_TAGGED_BUILD == "false" && \
+                           currentBuild.currentResult != 'FAILURE' && \
+                           currentBuild.currentResult != 'UNSTABLE'
+                }
+            }
+            steps {
+                script {
+                    // Use the commit ID stored in IMAGE_VERSION_TAG for main branch builds
+                    def commitIdTag = env.IMAGE_VERSION_TAG
+                    echo "Main branch build successful. Updating trigger comment in ${env.HELM_MAIN_VALUES_PATH} with commit: ${commitIdTag}"
+        
+                    // Check for required environment variables
+                    if (!env.HELM_REPO_URL || !env.HELM_REPO_CREDENTIALS_ID || !env.HELM_MAIN_VALUES_PATH) {
+                        error "FATAL: Missing environment variables for Helm repo update (HELM_REPO_URL, HELM_REPO_CREDENTIALS_ID, HELM_MAIN_VALUES_PATH)"
+                    }
+        
+                    // Use credentials with push access
+                    withCredentials([usernamePassword(credentialsId: env.HELM_REPO_CREDENTIALS_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASSWORD')]) {
+                        dir(env.HELM_REPO_DIR) {
+                            echo "Checking out Helm chart repository: ${env.HELM_REPO_URL} branch: ${env.HELM_REPO_BRANCH}"
+                            deleteDir()
+                            checkout([
+                                $class: 'GitSCM',
+                                branches: [[name: env.HELM_REPO_BRANCH]],
+                                userRemoteConfigs: [[
+                                    url: env.HELM_REPO_URL,
+                                    credentialsId: env.HELM_REPO_CREDENTIALS_ID
+                                ]]
+                            ])
+                            echo "Checkout of Helm repo complete."
+        
+                            // --- Modify the first line comment ---
+                            echo "Attempting to update trigger comment in ${env.HELM_MAIN_VALUES_PATH}"
+                            try {
+                                def originalContent = readFile file: env.HELM_MAIN_VALUES_PATH
+                                def lines = originalContent.split('\n')
+                                def newCommentLine = "# Deployed commit: ${commitIdTag}"
+        
+                                // Prepend or replace the first line with the new comment
+                                def newContent = ""
+                                if (lines.size() > 0 && lines[0].startsWith("#")) {
+                                    // Replace existing first line comment
+                                    lines[0] = newCommentLine
+                                    newContent = lines.join('\n')
+                                } else {
+                                    // Prepend the new comment if no comment exists or file is empty
+                                    newContent = newCommentLine + "\n" + originalContent
+                                }
+        
+                                // Write the modified content back
+                                writeFile file: env.HELM_MAIN_VALUES_PATH, text: newContent
+                                echo "Successfully updated ${env.HELM_MAIN_VALUES_PATH} trigger comment in workspace."
+        
+                                // --- Commit and Push ---
+                                echo "Committing and pushing updated ${env.HELM_MAIN_VALUES_PATH} to ${env.HELM_REPO_BRANCH}..."
+                                sh "git config user.email 'jenkins-ci@example.com'"
+                                sh "git config user.name 'Jenkins CI Bot'"
+                                sh "git add ${env.HELM_MAIN_VALUES_PATH}"
+                                sh "git commit -m 'CI: Update dev trigger comment to commit ${commitIdTag} [skip ci]'" // Update commit message
+        
+                                // Push using authenticated URL
+                                def repoHostAndPath = env.HELM_REPO_URL.split('//')[1]
+                                def pushUrl = "https://${GIT_USER}:${GIT_PASSWORD}@${repoHostAndPath}"
+                                echo "Pushing changes using authenticated URL..."
+                                sh "git push ${pushUrl} HEAD:${env.HELM_REPO_BRANCH}"
+                                echo "Trigger comment changes pushed successfully."
+        
+                            } catch (e) {
+                                echo "ERROR: Failed to update or push trigger comment changes!"
+                                echo e.getMessage()
+                                currentBuild.result = 'FAILURE'
+                                error("Failed to update Helm repository configuration trigger comment.")
+                            }
+                        } // End dir
+                    } // End withCredentials
+                } // End script
+            } // End steps
+        } // End Stage 4
+
+        // ============================================================
+        // Stage 4.5: Update Staging Config in Helm Repo
         // ============================================================
         stage('Update Staging Config in Helm Repo') {
             // Only run this stage for successful tagged builds
@@ -375,8 +462,8 @@ pipeline {
                                 // This assumes the structure matches: serviceName: { image: { tag: ... } }
                                 // *** Uses camelCase keys based on previous discussion - ADJUST if needed ***
                                 def serviceKeys = [
-                                    "adminServer", "apiGateway", "configServer", "customersService",
-                                    "discoveryServer", "genaiService", "vetsService", "visitsService"
+                                    "admin-server", "api-gateway", "config-server", "customers-service",
+                                    "discovery-server", "genai-service", "vets-service", "visits-service"
                                 ]
                                 serviceKeys.each { key ->
                                     if (valuesData."${key}") {
@@ -424,7 +511,7 @@ pipeline {
                     } // End withCredentials
                 } // End script
             } // End steps
-        } // End Stage 4 (New Stage)
+        } // End Stage 4.5
 
 
     } // End stages
