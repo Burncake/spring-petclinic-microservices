@@ -25,6 +25,7 @@ pipeline {
         // Path WITHIN the Helm repo checkout to the staging values file
         // Make sure this file exists in the Helm repo!
         HELM_STAGING_VALUES_PATH = "charts/petclinic-umbrella/values-staging.yaml" // !!! ADJUST path if needed !!!
+        HELM_MAIN_VALUES_PATH = "charts/petclinic-umbrella/values.yaml" // Target main values file for dev trigger
         // Subdirectory name for checking out helm repo in workspace
         HELM_REPO_DIR = "helm-repo-checkout"
 
