@@ -39,7 +39,7 @@ class PetDetailsTest {
         PetDetails details = new PetDetails(pet);
 
         // Assert
-        assertEquals(10L, details.id()); // Ensure long type matches
+        assertTrue(details.id() == 10L, "ID should match");
         assertEquals("Fuzzy", details.name());
         assertEquals("Test Owner", details.owner()); // Check concatenated name
         assertEquals(birthDate, details.birthDate());
