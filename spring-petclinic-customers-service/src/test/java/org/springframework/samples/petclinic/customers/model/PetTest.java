@@ -146,7 +146,6 @@ class PetTest {
     void equals_shouldReturnFalseWhenOwnerDifferent() {
         // Ensure owners themselves are different according to their equals/hashCode,
         // or simply different instances if equals is not overridden for Owner.
-         owner2.setId(2); // Give owner2 a different ID if Owner.equals uses it
          pet2.setOwner(owner2);
          assertNotEquals(pet1, pet2);
     }
