@@ -1,6 +1,5 @@
 package org.springframework.samples.petclinic.customers.model;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
