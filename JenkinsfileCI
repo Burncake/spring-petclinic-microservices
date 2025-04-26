@@ -406,7 +406,8 @@ pipeline {
                             } catch (e) {
                                 echo "ERROR: Failed to update or push trigger comment changes!"
                                 // Ensure this line correctly prints the error message
-                                echo "Failure Reason: ${e.getMessage()}" // Modified for clarity
+                                echo "DEBUG: Printing stack trace for the failure:"
+                                e.printStackTrace()
                                 currentBuild.result = 'FAILURE'
                                 error("Failed to update Helm repository configuration trigger comment.")
                             }
