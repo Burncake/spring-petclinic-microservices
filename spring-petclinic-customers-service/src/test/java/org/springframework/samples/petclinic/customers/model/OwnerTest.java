@@ -113,22 +113,22 @@ class OwnerTest {
 
     @Test
     void toString_shouldContainBasicInfo() {
-         // Arrange
-         owner.setAddress("123 Street");
-         owner.setCity("Cityville");
-         owner.setTelephone("12345");
-         // ID remains null as it's not set
+        // Arrange
+        owner.setAddress("123 Street");
+        owner.setCity("Cityville");
+        owner.setTelephone("12345");
+        // ID remains null as it's not set
 
         // Act
         String ownerString = owner.toString();
         System.out.println("DEBUG Owner.toString(): " + ownerString); // Optional: print for debugging format
 
-        // Assert - Use contains, be mindful of potential formatting like brackets by ToStringCreator
-        assertTrue(ownerString.contains("id = [null]"), "toString should contain id=null"); // Format might be [null]
-        assertTrue(ownerString.contains("lastName = [Owner]"), "toString should contain lastName");
-        assertTrue(ownerString.contains("firstName = [Test]"), "toString should contain firstName");
-        assertTrue(ownerString.contains("address = [123 Street]"), "toString should contain address");
-        assertTrue(ownerString.contains("city = [Cityville]"), "toString should contain city");
-        assertTrue(ownerString.contains("telephone = [12345]"), "toString should contain telephone");
+        // Assert - Match format observed in logs: single quotes for strings, [null] for null ID
+        assertTrue(ownerString.contains("id = [null]"), "toString should contain id=[null]"); // [cite: 67]
+        assertTrue(ownerString.contains("lastName = 'Owner'"), "toString should contain lastName"); // [cite: 67, 69] corrected format
+        assertTrue(ownerString.contains("firstName = 'Test'"), "toString should contain firstName"); // [cite: 67] corrected format
+        assertTrue(ownerString.contains("address = '123 Street'"), "toString should contain address"); // [cite: 67] corrected format
+        assertTrue(ownerString.contains("city = 'Cityville'"), "toString should contain city"); // [cite: 67] corrected format
+        assertTrue(ownerString.contains("telephone = '12345'"), "toString should contain telephone"); // [cite: 67] corrected format
     }
 }

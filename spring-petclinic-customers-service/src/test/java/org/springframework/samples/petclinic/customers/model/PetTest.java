@@ -175,17 +175,15 @@ class PetTest {
         String petString = pet1.toString();
         System.out.println("DEBUG Pet.toString(): " + petString); // Optional: print for debugging format
 
-        // Assert - Use contains, be mindful of potential formatting like brackets by ToStringCreator
-        // Also check for the specific date format used by ToStringCreator/Date.toString()
-        assertTrue(petString.contains("id = [5]"), "toString should contain id=5");
-        assertTrue(petString.contains("name = [Pet1]"), "toString should contain name=Pet1");
-        // Date format can be tricky, check contains part of it or use a more robust check if needed
-        assertTrue(petString.contains("birthDate = ["), "toString should contain birthDate prefix"); // Check prefix
-        // Check for year, month, day might be safer than exact full string
-        assertTrue(petString.contains("2020"), "toString should contain birth year");
+        // Assert - Match format observed in logs: no quotes for ID, single quotes for strings
+        assertTrue(petString.contains("id = 5"), "toString should contain id=5"); // [cite: 70, 72] corrected format
+        assertTrue(petString.contains("name = 'Pet1'"), "toString should contain name='Pet1'"); // [cite: 70] corrected format
+        // Date format check remains flexible
+        assertTrue(petString.contains("birthDate = "), "toString should contain birthDate prefix"); // [cite: 70]
+        assertTrue(petString.contains("2020"), "toString should contain birth year"); // [cite: 70]
 
-        assertTrue(petString.contains("type = [Type1]"), "toString should contain type=Type1");
-        assertTrue(petString.contains("ownerFirstname = [Owner1]"), "toString should contain ownerFirstname=Owner1");
-        assertTrue(petString.contains("ownerLastname = [LN1]"), "toString should contain ownerLastname=LN1");
+        assertTrue(petString.contains("type = 'Type1'"), "toString should contain type='Type1'"); // [cite: 70] corrected format
+        assertTrue(petString.contains("ownerFirstname = 'Owner1'"), "toString should contain ownerFirstname='Owner1'"); // [cite: 70] corrected format
+        assertTrue(petString.contains("ownerLastname = 'LN1'"), "toString should contain ownerLastname='LN1'"); // [cite: 70] corrected format
     }
 }
