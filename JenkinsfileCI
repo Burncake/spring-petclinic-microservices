@@ -371,42 +371,43 @@ pipeline {
                             echo "Attempting to update trigger comment in ${env.HELM_MAIN_VALUES_PATH}"
                             try {
                                 def originalContent = readFile file: env.HELM_MAIN_VALUES_PATH
-                                def lines = originalContent.split('\n')
-                                def newCommentLine = "# Deployed commit: ${commitIdTag}"
+                                def lines = originalContent.split('\n') // lines is String[]
 
-                                // Prepend or replace the first line with the new comment
+                                // Create the comment line (still a GString initially)
+                                def newCommentLineGString = "# Deployed commit: ${commitIdTag}"
+                                // *** FIX: Convert GString to standard String ***
+                                def newCommentLineString = newCommentLineGString.toString()
+
                                 def newContent = ""
                                 if (lines.size() > 0 && lines[0].startsWith("#")) {
-                                    // Replace existing first line comment
-                                    echo "Entered condition"
-                                    lines[0] = newCommentLine
-                                    echo "Yep lines[0] = error!"
+                                    // *** Assign the standard String - This should now work ***
+                                    lines[0] = newCommentLineString
                                     newContent = lines.join('\n')
                                 } else {
-                                    // Prepend the new comment if no comment exists or file is empty
-                                    newContent = newCommentLine + "\n" + originalContent
+                                    // Use the standard String in concatenation
+                                    newContent = newCommentLineString + "\n" + originalContent
                                 }
-        
-                                // Write the modified content back
+
                                 writeFile file: env.HELM_MAIN_VALUES_PATH, text: newContent
                                 echo "Successfully updated ${env.HELM_MAIN_VALUES_PATH} trigger comment in workspace."
-        
+
                                 // --- Commit and Push ---
                                 echo "Committing and pushing updated ${env.HELM_MAIN_VALUES_PATH} to ${env.HELM_REPO_BRANCH}..."
                                 sh "git config user.email 'jenkins-ci@example.com'"
                                 sh "git config user.name 'Jenkins CI Bot'"
                                 sh "git add ${env.HELM_MAIN_VALUES_PATH}"
-                                sh "git commit -m 'CI: Update dev trigger comment to commit ${commitIdTag} [skip ci]'" // Update commit message
-        
+                                sh "git commit -m 'CI: Update dev trigger comment to commit ${commitIdTag} [skip ci]'"
+
                                 // Push using authenticated URL
                                 def repoHostAndPath = env.HELM_REPO_URL.split('//')[1]
                                 def pushUrl = "https://${GIT_USER}:${GIT_PASSWORD}@${repoHostAndPath}"
                                 echo "Pushing changes using authenticated URL..."
                                 sh "git push ${pushUrl} HEAD:${env.HELM_REPO_BRANCH}"
                                 echo "Trigger comment changes pushed successfully."
-        
+
                             } catch (e) {
-                                // Try printing the exception object converted to a string
+                                echo "ERROR: Failed to update or push trigger comment changes!"
+                                // Keep this logging format for now
                                 echo "Failure Details: ${e.toString()}"
                                 currentBuild.result = 'FAILURE'
                                 error("Failed to update Helm repository configuration trigger comment.")
