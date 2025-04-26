@@ -139,194 +139,194 @@ pipeline {
             } // End steps
         } // End Stage 1
 
-        // // ============================================================
-        // // Stage 2: Test Services (Unchanged)
-        // // ============================================================
-        // stage('Test Services') {
-        //     when { expression { return env.CHANGED_SERVICES?.trim() } }
-        //     steps {
-        //          script {
-        //             def serviceList = env.CHANGED_SERVICES.trim().split(" ")
-        //             def jacocoExecFiles = []
-        //             def jacocoClassDirs = []
-        //             def jacocoSrcDirs = []
-        //             env.TESTS_FAILED_FLAG = "false"
+        // ============================================================
+        // Stage 2: Test Services (Unchanged)
+        // ============================================================
+        stage('Test Services') {
+            when { expression { return env.CHANGED_SERVICES?.trim() } }
+            steps {
+                 script {
+                    def serviceList = env.CHANGED_SERVICES.trim().split(" ")
+                    def jacocoExecFiles = []
+                    def jacocoClassDirs = []
+                    def jacocoSrcDirs = []
+                    env.TESTS_FAILED_FLAG = "false"
 
-        //             for (service in serviceList) {
-        //                 echo "--- Preparing to Test Service: ${service} ---"
-        //                 if (env.SERVICES_WITHOUT_TESTS.contains(service)) {
-        //                     echo "Skipping tests for ${service} (marked as having no tests)."
-        //                     continue
-        //                 }
-        //                 dir(service) {
-        //                     try {
-        //                         echo "Running 'mvn clean test' for ${service}..."
-        //                         sh 'mvn clean test'
-        //                         echo "Tests completed for ${service}."
-        //                         if (fileExists('target/jacoco.exec')) {
-        //                             echo "Found jacoco.exec for ${service}. Adding to aggregation list."
-        //                             jacocoExecFiles.add("${service}/target/jacoco.exec")
-        //                             jacocoClassDirs.add("${service}/target/classes")
-        //                             jacocoSrcDirs.add("${service}/src/main/java")
-        //                         } else {
-        //                             echo "WARNING: jacoco.exec not found for ${service} after tests ran."
-        //                         }
-        //                     } catch (err) {
-        //                         echo "ERROR: Tests FAILED for ${service}. Marking build as UNSTABLE."
-        //                         env.TESTS_FAILED_FLAG = "true"
-        //                     } finally {
-        //                         echo "Publishing JUnit results for ${service}..."
-        //                         junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-        //                     }
-        //                 }
-        //             }
-        //             // JaCoCo aggregation and final status check
-        //              if (!jacocoExecFiles.isEmpty()) {
-        //                 echo "--- Generating Aggregated JaCoCo Coverage Report ---" // [cite: 48]
-        //                 echo "Aggregating JaCoCo data from ${jacocoExecFiles.size()} service(s)." // [cite: 48]
-        //                 echo "Exec files: ${jacocoExecFiles.join(',')}" // [cite: 49]
-        //                 echo "Class dirs: ${jacocoClassDirs.join(',')}" // [cite: 49]
-        //                 echo "Source dirs: ${jacocoSrcDirs.join(',')}" // [cite: 50]
-        //                 try {
-        //                     jacoco( // [cite: 49]
-        //                         execPattern: jacocoExecFiles.join(','), // [cite: 49]
-        //                         classPattern: jacocoClassDirs.join(','), // [cite: 49]
-        //                         sourcePattern: jacocoSrcDirs.join(','), // [cite: 50]
-        //                         inclusionPattern: '**/*.class', // [cite: 50]
-        //                         exclusionPattern: '**/test/**,**/model/**,**/domain/**,**/entity/**', // [cite: 50]
-        //                         skipCopyOfSrcFiles: true, // [cite: 51]
+                    for (service in serviceList) {
+                        echo "--- Preparing to Test Service: ${service} ---"
+                        if (env.SERVICES_WITHOUT_TESTS.contains(service)) {
+                            echo "Skipping tests for ${service} (marked as having no tests)."
+                            continue
+                        }
+                        dir(service) {
+                            try {
+                                echo "Running 'mvn clean test' for ${service}..."
+                                sh 'mvn clean test'
+                                echo "Tests completed for ${service}."
+                                if (fileExists('target/jacoco.exec')) {
+                                    echo "Found jacoco.exec for ${service}. Adding to aggregation list."
+                                    jacocoExecFiles.add("${service}/target/jacoco.exec")
+                                    jacocoClassDirs.add("${service}/target/classes")
+                                    jacocoSrcDirs.add("${service}/src/main/java")
+                                } else {
+                                    echo "WARNING: jacoco.exec not found for ${service} after tests ran."
+                                }
+                            } catch (err) {
+                                echo "ERROR: Tests FAILED for ${service}. Marking build as UNSTABLE."
+                                env.TESTS_FAILED_FLAG = "true"
+                            } finally {
+                                echo "Publishing JUnit results for ${service}..."
+                                junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                            }
+                        }
+                    }
+                    // JaCoCo aggregation and final status check
+                     if (!jacocoExecFiles.isEmpty()) {
+                        echo "--- Generating Aggregated JaCoCo Coverage Report ---" // [cite: 48]
+                        echo "Aggregating JaCoCo data from ${jacocoExecFiles.size()} service(s)." // [cite: 48]
+                        echo "Exec files: ${jacocoExecFiles.join(',')}" // [cite: 49]
+                        echo "Class dirs: ${jacocoClassDirs.join(',')}" // [cite: 49]
+                        echo "Source dirs: ${jacocoSrcDirs.join(',')}" // [cite: 50]
+                        try {
+                            jacoco( // [cite: 49]
+                                execPattern: jacocoExecFiles.join(','), // [cite: 49]
+                                classPattern: jacocoClassDirs.join(','), // [cite: 49]
+                                sourcePattern: jacocoSrcDirs.join(','), // [cite: 50]
+                                inclusionPattern: '**/*.class', // [cite: 50]
+                                exclusionPattern: '**/test/**,**/model/**,**/domain/**,**/entity/**', // [cite: 50]
+                                skipCopyOfSrcFiles: true, // [cite: 51]
                                 
-        //                         // *** Use the parameters generated by Pipeline Syntax ***
-        //                         changeBuildStatus: true,
-        //                         minimumBranchCoverage: '70',
-        //                         minimumClassCoverage: '70',        // Added based on generator
-        //                         minimumComplexityCoverage: '70',
-        //                         minimumInstructionCoverage: '70',
-        //                         minimumLineCoverage: '70',
-        //                         minimumMethodCoverage: '70'        // Added based on generator
-        //                         // *** End parameters from Pipeline Syntax ***
-        //                     )
-        //                     echo "JaCoCo aggregated report generated. Check Jenkins sidebar for the 'Code Coverage Trend' link."
-        //                     echo "Coverage thresholds (Instruction, Line, Branch, Complexity) set to 70%. Build will be UNSTABLE if not met."
-        //                     echo "NOTE: View per-service coverage by navigating the package structure within the aggregated report."
-        //                 } catch (err) {
-        //                     echo "ERROR: Failed to generate JaCoCo aggregated report: ${err.getMessage()}"
-        //                     currentBuild.result = 'UNSTABLE'
-        //                 }
-        //              } else {
-        //                 echo "No JaCoCo execution data found to aggregate."
-        //              }
-        //             if (env.TESTS_FAILED_FLAG == "true") {
-        //                 echo "Setting build status to UNSTABLE due to test failures."
-        //                 currentBuild.result = 'UNSTABLE'
-        //             } else {
-        //                 echo "All tests passed or were skipped."
-        //             }
-        //         } // End script
-        //     } // End steps
-        // } // End Stage 2
+                                // *** Use the parameters generated by Pipeline Syntax ***
+                                changeBuildStatus: true,
+                                minimumBranchCoverage: '70',
+                                minimumClassCoverage: '70',        // Added based on generator
+                                minimumComplexityCoverage: '70',
+                                minimumInstructionCoverage: '70',
+                                minimumLineCoverage: '70',
+                                minimumMethodCoverage: '70'        // Added based on generator
+                                // *** End parameters from Pipeline Syntax ***
+                            )
+                            echo "JaCoCo aggregated report generated. Check Jenkins sidebar for the 'Code Coverage Trend' link."
+                            echo "Coverage thresholds (Instruction, Line, Branch, Complexity) set to 70%. Build will be UNSTABLE if not met."
+                            echo "NOTE: View per-service coverage by navigating the package structure within the aggregated report."
+                        } catch (err) {
+                            echo "ERROR: Failed to generate JaCoCo aggregated report: ${err.getMessage()}"
+                            currentBuild.result = 'UNSTABLE'
+                        }
+                     } else {
+                        echo "No JaCoCo execution data found to aggregate."
+                     }
+                    if (env.TESTS_FAILED_FLAG == "true") {
+                        echo "Setting build status to UNSTABLE due to test failures."
+                        currentBuild.result = 'UNSTABLE'
+                    } else {
+                        echo "All tests passed or were skipped."
+                    }
+                } // End script
+            } // End steps
+        } // End Stage 2
 
 
-        // // ============================================================
-        // // Stage 3: Build, Package & Push Docker Images (MODIFIED Tagging)
-        // // ============================================================
-        // stage('Build, Package & Push Docker Images') {
-        //      when {
-        //         // Condition remains the same: run if services changed and previous stages didn't fail
-        //         expression { return env.CHANGED_SERVICES?.trim() && currentBuild.currentResult != 'FAILURE' }
-        //     }
-        //     steps {
-        //         script {
-        //             // Initial checks (DOCKERHUB_USERNAME, DOCKERHUB_CREDENTIALS_ID, DOCKERFILE_PATH) - same as before
-        //             if (!env.DOCKERHUB_USERNAME || env.DOCKERHUB_USERNAME == 'your-dockerhub-username') { error "FATAL: DOCKERHUB_USERNAME environment variable is not set or not replaced in Jenkinsfile." }
-        //             if (!env.DOCKERHUB_CREDENTIALS_ID || env.DOCKERHUB_CREDENTIALS_ID == 'dockerhub-credentials') { error "FATAL: DOCKERHUB_CREDENTIALS_ID environment variable is not set or not replaced in Jenkinsfile." }
-        //             if (!fileExists(env.DOCKERFILE_PATH)) { error "FATAL: Common Dockerfile not found at ${env.DOCKERFILE_PATH}"}
+        // ============================================================
+        // Stage 3: Build, Package & Push Docker Images (MODIFIED Tagging)
+        // ============================================================
+        stage('Build, Package & Push Docker Images') {
+             when {
+                // Condition remains the same: run if services changed and previous stages didn't fail
+                expression { return env.CHANGED_SERVICES?.trim() && currentBuild.currentResult != 'FAILURE' }
+            }
+            steps {
+                script {
+                    // Initial checks (DOCKERHUB_USERNAME, DOCKERHUB_CREDENTIALS_ID, DOCKERFILE_PATH) - same as before
+                    if (!env.DOCKERHUB_USERNAME || env.DOCKERHUB_USERNAME == 'your-dockerhub-username') { error "FATAL: DOCKERHUB_USERNAME environment variable is not set or not replaced in Jenkinsfile." }
+                    if (!env.DOCKERHUB_CREDENTIALS_ID || env.DOCKERHUB_CREDENTIALS_ID == 'dockerhub-credentials') { error "FATAL: DOCKERHUB_CREDENTIALS_ID environment variable is not set or not replaced in Jenkinsfile." }
+                    if (!fileExists(env.DOCKERFILE_PATH)) { error "FATAL: Common Dockerfile not found at ${env.DOCKERFILE_PATH}"}
 
-        //             def serviceList = env.CHANGED_SERVICES.trim().split(" ")
-        //             // IMAGE_VERSION_TAG is now set in Stage 1 (commit ID or Git Tag)
-        //             echo "Using Primary Image Tag for Docker operations: ${env.IMAGE_VERSION_TAG}"
-        //             def buildFailed = false
+                    def serviceList = env.CHANGED_SERVICES.trim().split(" ")
+                    // IMAGE_VERSION_TAG is now set in Stage 1 (commit ID or Git Tag)
+                    echo "Using Primary Image Tag for Docker operations: ${env.IMAGE_VERSION_TAG}"
+                    def buildFailed = false
 
-        //             withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-        //                 try { // Docker login
-        //                     echo "Attempting explicit Docker login..."
-        //                     sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-        //                     echo "Explicit Docker login successful."
-        //                 } catch (e) {
-        //                     error "FATAL: Explicit Docker login failed. Check credentials and permissions. Error: ${e.message}"
-        //                 }
+                    withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        try { // Docker login
+                            echo "Attempting explicit Docker login..."
+                            sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                            echo "Explicit Docker login successful."
+                        } catch (e) {
+                            error "FATAL: Explicit Docker login failed. Check credentials and permissions. Error: ${e.message}"
+                        }
 
-        //                 for (service in serviceList) {
-        //                     echo "--- Processing Service: ${service} ---"
-        //                     def artifactNameArgValue = ""
+                        for (service in serviceList) {
+                            echo "--- Processing Service: ${service} ---"
+                            def artifactNameArgValue = ""
 
-        //                     // 1. Package JAR (same logic as before)
-        //                     dir(service) {
-        //                         try {
-        //                             echo "Running 'mvn clean package -DskipTests' for ${service}..."
-        //                             sh 'mvn clean package -DskipTests'
-        //                             echo "Maven package successful for ${service}."
-        //                             def jarFileFullPath = sh(script: 'find target -maxdepth 1 -name "*.jar" -print -quit', returnStdout: true).trim()
-        //                             if (!jarFileFullPath) { error "Could not find JAR file in target/ for ${service}." }
-        //                             def jarFileRelativePath = "${service}/${jarFileFullPath}"
-        //                             if (jarFileRelativePath.endsWith('.jar')) {
-        //                                 artifactNameArgValue = jarFileRelativePath.substring(0, jarFileRelativePath.length() - 4)
-        //                             } else { error("Could not remove .jar suffix from ${jarFileRelativePath}") }
-        //                             echo "JAR path relative to root: ${jarFileRelativePath}"
-        //                             echo "ARTIFACT_NAME build-arg value: ${artifactNameArgValue}"
-        //                         } catch (err) {
-        //                             echo "ERROR: Maven package FAILED for ${service}: ${err.getMessage()}"
-        //                             buildFailed = true
-        //                             if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
-        //                             continue // Skip Docker steps
-        //                         }
-        //                     } // End dir(service)
+                            // 1. Package JAR (same logic as before)
+                            dir(service) {
+                                try {
+                                    echo "Running 'mvn clean package -DskipTests' for ${service}..."
+                                    sh 'mvn clean package -DskipTests'
+                                    echo "Maven package successful for ${service}."
+                                    def jarFileFullPath = sh(script: 'find target -maxdepth 1 -name "*.jar" -print -quit', returnStdout: true).trim()
+                                    if (!jarFileFullPath) { error "Could not find JAR file in target/ for ${service}." }
+                                    def jarFileRelativePath = "${service}/${jarFileFullPath}"
+                                    if (jarFileRelativePath.endsWith('.jar')) {
+                                        artifactNameArgValue = jarFileRelativePath.substring(0, jarFileRelativePath.length() - 4)
+                                    } else { error("Could not remove .jar suffix from ${jarFileRelativePath}") }
+                                    echo "JAR path relative to root: ${jarFileRelativePath}"
+                                    echo "ARTIFACT_NAME build-arg value: ${artifactNameArgValue}"
+                                } catch (err) {
+                                    echo "ERROR: Maven package FAILED for ${service}: ${err.getMessage()}"
+                                    buildFailed = true
+                                    if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
+                                    continue // Skip Docker steps
+                                }
+                            } // End dir(service)
 
-        //                     // 2. Build and Push Docker Image (Using IMAGE_VERSION_TAG)
-        //                     if (artifactNameArgValue) {
-        //                         try {
-        //                             def imageName = "${env.DOCKERHUB_USERNAME}/${service}"
-        //                             // Use the determined version tag (Commit ID or Git Tag)
-        //                             def primaryTag = env.IMAGE_VERSION_TAG // Use tag determined in Stage 1
-        //                             echo "Building Docker image: ${imageName}:${primaryTag} using ${env.DOCKERFILE_PATH}"
-        //                             def dockerImage = docker.build("${imageName}:${primaryTag}", "-f ${env.DOCKERFILE_PATH} --build-arg ARTIFACT_NAME=${artifactNameArgValue} .")
+                            // 2. Build and Push Docker Image (Using IMAGE_VERSION_TAG)
+                            if (artifactNameArgValue) {
+                                try {
+                                    def imageName = "${env.DOCKERHUB_USERNAME}/${service}"
+                                    // Use the determined version tag (Commit ID or Git Tag)
+                                    def primaryTag = env.IMAGE_VERSION_TAG // Use tag determined in Stage 1
+                                    echo "Building Docker image: ${imageName}:${primaryTag} using ${env.DOCKERFILE_PATH}"
+                                    def dockerImage = docker.build("${imageName}:${primaryTag}", "-f ${env.DOCKERFILE_PATH} --build-arg ARTIFACT_NAME=${artifactNameArgValue} .")
 
-        //                             echo "Pushing Docker image: ${imageName}:${primaryTag}"
-        //                             dockerImage.push() // Push the primary tag (Commit ID or Git Tag)
+                                    echo "Pushing Docker image: ${imageName}:${primaryTag}"
+                                    dockerImage.push() // Push the primary tag (Commit ID or Git Tag)
 
-        //                             // --- Updated conditional push logic ---
-        //                             // Push 'latest' tag ONLY for non-tagged builds on the 'main' branch
-        //                             if (env.BRANCH_NAME == 'main' && env.IS_TAGGED_BUILD == "false") {
-        //                                 echo "Pushing additional tag 'latest' for main branch build: ${imageName}:latest"
-        //                                 dockerImage.push('latest')
-        //                             }
-        //                             // --- Removed push of branch name tag ---
+                                    // --- Updated conditional push logic ---
+                                    // Push 'latest' tag ONLY for non-tagged builds on the 'main' branch
+                                    if (env.BRANCH_NAME == 'main' && env.IS_TAGGED_BUILD == "false") {
+                                        echo "Pushing additional tag 'latest' for main branch build: ${imageName}:latest"
+                                        dockerImage.push('latest')
+                                    }
+                                    // --- Removed push of branch name tag ---
 
-        //                             echo "Docker build and push successful for ${service} with tag ${primaryTag}."
-        //                             // Add echo for latest tag if pushed
-        //                             if (env.BRANCH_NAME == 'main' && env.IS_TAGGED_BUILD == "false") {
-        //                                  echo "Also pushed tag 'latest' for ${service}."
-        //                             }
+                                    echo "Docker build and push successful for ${service} with tag ${primaryTag}."
+                                    // Add echo for latest tag if pushed
+                                    if (env.BRANCH_NAME == 'main' && env.IS_TAGGED_BUILD == "false") {
+                                         echo "Also pushed tag 'latest' for ${service}."
+                                    }
 
-        //                         } catch (err) {
-        //                             echo "ERROR: Docker build or push FAILED for ${service}: ${err.getMessage()}"
-        //                             buildFailed = true
-        //                             if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
-        //                         }
-        //                     } // End if (artifactNameArgValue)
-        //                 } // End for loop
-        //             } // End withCredentials
+                                } catch (err) {
+                                    echo "ERROR: Docker build or push FAILED for ${service}: ${err.getMessage()}"
+                                    buildFailed = true
+                                    if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
+                                }
+                            } // End if (artifactNameArgValue)
+                        } // End for loop
+                    } // End withCredentials
 
-        //             // Final stage status check (same as before)
-        //             if (buildFailed) {
-        //                 echo "One or more services failed during package or docker build/push."
-        //                 if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
-        //             } else {
-        //                 echo "All processed services completed package and docker build/push successfully."
-        //             }
-        //         } // End script
-        //     } // End steps
-        // } // End Stage 3
+                    // Final stage status check (same as before)
+                    if (buildFailed) {
+                        echo "One or more services failed during package or docker build/push."
+                        if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
+                    } else {
+                        echo "All processed services completed package and docker build/push successfully."
+                    }
+                } // End script
+            } // End steps
+        } // End Stage 3
 
         // ============================================================
         // Stage 4: Update Dev Trigger Comment in Helm Repo (SIMPLIFIED)
