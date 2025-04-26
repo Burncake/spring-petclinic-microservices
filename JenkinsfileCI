@@ -384,7 +384,7 @@ pipeline {
                                     // Prepend the new comment if no comment exists or file is empty
                                     newContent = newCommentLine + "\n" + originalContent
                                 }
-        
+                                echo "This is new comment line: ${newCommentLine}"
                                 // Write the modified content back
                                 writeFile file: env.HELM_MAIN_VALUES_PATH, text: newContent
                                 echo "Successfully updated ${env.HELM_MAIN_VALUES_PATH} trigger comment in workspace."
